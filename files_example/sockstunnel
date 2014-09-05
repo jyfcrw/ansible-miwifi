@@ -1,0 +1,30 @@
+#!/bin/sh /etc/rc.common
+
+START=85
+STOP=5
+
+LOCAL=[LOCAL HOST IP AND PORT] #localhost:32000
+REMOTE=[REMOTE HOST IP] #root@yourserver
+
+DAEMON=/usr/bin/ssh
+PIDFILE=/var/run/sockstunnel.pid
+
+start() {
+	echo "Start Socks Tunnel Daemon:"
+	start-stop-daemon -S -b -q -m -p $PIDFILE -x $DAEMON \
+	-- -i /etc/dropbear/id_rsa -g -N -y -L $LOCAL:localhost:7070 $REMOTE
+	echo "Socks Tunnel Daemon Started."
+}
+
+stop() {
+	if [ -f $PIDFILE ]; then
+		PID=$(cat $PIDFILE)
+		kill $PID
+		while [ -d /proc/$PID ];
+		do
+			sleep 1
+		done
+	fi
+	rm -rf $PIDFILE
+	echo "Socks Tunnel Daemon Stoped."
+}

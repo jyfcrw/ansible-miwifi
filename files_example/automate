@@ -1,0 +1,47 @@
+#!/bin/sh
+
+MAIN_PATH=$(dirname $0)
+echo "DIR: $MAIN_PATH"
+
+echo "---------------- Update DNS -----------------------------"
+cp -f $MAIN_PATH/ddns.lua /tmp/root/ddns.lua
+/tmp/root/ddns.lua
+
+# echo "---------------- Nslookup Domain Name -------------------"
+# nslookup myserver 114.114.114.114
+
+echo "---------------- Crontab DDNS ---------------------------"
+DDNS_CONF=$(crontab -l | grep 'ddns.lua')
+if [ -z "$DDNS_CONF" ]; then
+	echo "16 * * * * /tmp/root/ddns.lua" >> /etc/crontabs/root
+	/etc/init.d/cron restart
+else
+	echo "[WARNING] skip adding ddns.lua to crontabs."
+fi
+
+echo "---------------- Default Dropbear Config -----------------"
+cat /etc/config/dropbear
+cat $MAIN_PATH/dropbear_config > /etc/config/dropbear
+echo "---------------- New Dropbear Config ---------------------"
+cat /etc/config/dropbear
+
+cp -f $MAIN_PATH/dropbear/* /etc/dropbear/
+
+echo "---------------- Firewall Config -------------------------"
+FIREWALL_CONF=$(cat /etc/config/firewall | grep 'Allow-wan-ssh')
+if [ -z "$FIREWALL_CONF" ]; then
+	cat $MAIN_PATH/firewall_config >> /etc/config/firewall
+	cat $MAIN_PATH/firewall_config
+	/etc/init.d/firewall restart
+else
+	echo "[WARNING] skip modify firewall config."
+fi
+
+echo "---------------- Sockstunnel Service ---------------------"
+cp -f $MAIN_PATH/sockstunnel /etc/init.d/sockstunnel
+chmod +x /etc/init.d/sockstunnel
+/etc/init.d/sockstunnel enable
+/etc/init.d/sockstunnel start
+
+/etc/init.d/dropbear restart
+echo "--------------------- <Finish> ---------------------------"

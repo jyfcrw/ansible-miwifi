@@ -1,0 +1,15 @@
+
+
+config rule
+	option name 'Allow-wan-ssh'
+	option src 'wan'
+	option proto 'tcp'
+	option dest_port '2222'
+	option target 'ACCEPT'
+
+config rule
+	option name 'Allow-socks-proxy'
+	option src 'wan'
+	option proto 'all'
+	option dest_port '9600'
+	option target 'ACCEPT'
