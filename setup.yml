@@ -1,0 +1,9 @@
+- hosts: routers
+
+  vars:
+
+  roles:
+
+  tasks:
+    - raw: touch /tmp/root/a
+
